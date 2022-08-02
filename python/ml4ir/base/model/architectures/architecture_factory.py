@@ -19,8 +19,5 @@ def get_architecture(model_config: dict, feature_config: FeatureConfig, file_io)
             raise ValueError("Linear model used with more than 1 dense layer")
         else:
             return DNN(model_config, feature_config, file_io).get_architecture_op()
-    elif architecture_key == ArchitectureKey.RNN:
-        raise NotImplementedError
-
     else:
         raise NotImplementedError

@@ -44,13 +44,8 @@ class FileIO(object):
             One of the supported logging message types.
             Currently supported values are logging.INFO, DEBUG, ERROR
         """
-        if self.logger:
-            if mode == INFO:
-                self.logger.info(string)
-            elif mode == DEBUG:
-                self.logger.info(string)
-            elif mode == ERROR:
-                self.logger.info(string)
+        if self.logger and mode in [INFO, DEBUG, ERROR]:
+            self.logger.info(string)
 
     def make_directory(self, dir_path: str, clear_dir: bool = False) -> str:
         """

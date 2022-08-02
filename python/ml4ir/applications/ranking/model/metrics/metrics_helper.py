@@ -222,9 +222,7 @@ def get_grouped_stats(
         }
     )
 
-    df_stats = pd.concat([df_label_stats, df_failure_stats], axis=1)
-
-    return df_stats
+    return pd.concat([df_label_stats, df_failure_stats], axis=1)
 
 
 def summarize_grouped_stats(df_grouped):
@@ -254,8 +252,9 @@ def summarize_grouped_stats(df_grouped):
     df_grouped_metrics["query_count"] = query_count
 
     df_grouped_metrics = df_grouped_metrics.rename(
-        {c: "mean_{}".format(c) for c in df_grouped_metrics.to_dict().keys()}
+        {c: f"mean_{c}" for c in df_grouped_metrics.to_dict().keys()}
     )
+
     df_grouped_metrics = df_grouped_metrics.rename(
         {
             "mean_sum_old_rank": "old_ACR",
@@ -277,9 +276,12 @@ def summarize_grouped_stats(df_grouped):
     for col in df_grouped_metrics.to_dict().keys():
         if "failure" in col:
             metric_name = col[len("mean_old_") :]
-            df_grouped_metrics["perc_improv_mean_{}".format(metric_name)] = (
-                df_grouped_metrics["mean_old_{}".format(metric_name)]
-                - df_grouped_metrics["mean_new_{}".format(metric_name)]
-            ) / df_grouped_metrics["mean_old_{}".format(metric_name)]
+            df_grouped_metrics[f"perc_improv_mean_{metric_name}"] = (
+                (
+                    df_grouped_metrics[f"mean_old_{metric_name}"]
+                    - df_grouped_metrics[f"mean_new_{metric_name}"]
+                )
+            ) / df_grouped_metrics[f"mean_old_{metric_name}"]
+
 
     return df_grouped_metrics

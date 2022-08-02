@@ -123,10 +123,9 @@ class RelevanceDataset:
             data_reader = ranklib_reader
         else:
             raise NotImplementedError(
-                "Unsupported data format: {}. We currenty support {} and {}.".format(
-                    self.data_format, DataFormatKey.CSV, DataFormatKey.TFRECORD
-                )
+                f"Unsupported data format: {self.data_format}. We currenty support {DataFormatKey.CSV} and {DataFormatKey.TFRECORD}."
             )
+
 
         if to_split:
             """

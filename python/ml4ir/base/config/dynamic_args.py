@@ -19,22 +19,16 @@ def cast_dynamic_val(val: str):
     -------
     Value cast to appropriate dtype
     """
-    if isinstance(val, str):
-        if val.replace(DOT, "").isdigit():
-            if DOT in val:
-                # float
-                return float(val)
-            else:
-                # int
-                return int(val)
-        elif val.isalnum():
-            # str
-            return val
-        else:
-            # If contains punctuation
-            return ast.literal_eval(val)
-    else:
+    if not isinstance(val, str):
         return val
+    if val.replace(DOT, "").isdigit():
+        return float(val) if DOT in val else int(val)
+    elif val.isalnum():
+        # str
+        return val
+    else:
+        # If contains punctuation
+        return ast.literal_eval(val)
 
 
 def override_list(base_list: List, dynamic_key: str, val):

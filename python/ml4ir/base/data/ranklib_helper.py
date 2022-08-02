@@ -35,7 +35,7 @@ def process_line(line, keep_additional_info, query_id_name, relevance_name):
         feat = fv.split(':')[0].strip()
         if feat == query_id_name:
             val = fv.split(':')[1].strip()
-            r[feat] = 'Q'+str(val)
+            r[feat] = f'Q{str(val)}'
         elif feat == relevance_name:
             val = fv.split(':')[1].strip()
             r[feat] = float(val)
@@ -78,13 +78,19 @@ def convert(input_file, keep_additional_info, gl_2_clicks,
                 converted ml4ir dataframe
         """
 
-    f = open(input_file, 'r')
-    rows = []
-    for line in f:
-        rows.append(process_line(line, keep_additional_info, query_id_name, relevance_name))
-    f.close()
+    with open(input_file, 'r') as f:
+        rows = [
+            process_line(
+                line, keep_additional_info, query_id_name, relevance_name
+            )
+            for line in f
+        ]
+
     if non_zero_features_only:
-        columns = [query_id_name, relevance_name] + ['f_' + str(i) for i in range(max_f_id)]
+        columns = [query_id_name, relevance_name] + [
+            f'f_{str(i)}' for i in range(max_f_id)
+        ]
+
         df = pd.DataFrame(rows, columns=columns)
         df.replace(np.nan, 0, inplace=True)
     else:

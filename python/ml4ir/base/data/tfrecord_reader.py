@@ -186,12 +186,11 @@ class TFRecordParser(object):
         Pass custom preprocessing functions while instantiating the
         RelevanceDataset object with `preprocessing_keys_to_fns` argument
         """
-        preprocessing_info = feature_info.get("preprocessing_info")
-
-        if preprocessing_info:
+        if preprocessing_info := feature_info.get("preprocessing_info"):
             for preprocessing_step in preprocessing_info:
-                preprocessing_fn = self.preprocessing_map.get_fn(preprocessing_step["fn"])
-                if preprocessing_fn:
+                if preprocessing_fn := self.preprocessing_map.get_fn(
+                    preprocessing_step["fn"]
+                ):
                     feature_tensor = preprocessing_fn(
                         feature_tensor, **preprocessing_step.get("args", {})
                     )
@@ -234,7 +233,7 @@ class TFRecordParser(object):
             """
             # Parse the proto message to extract feature tensors
             extracted_features = self.extract_features_from_proto(proto)
-            features_dict = dict()
+            features_dict = {}
 
             # Create a mask tensor and add to the features dictionary
             features_dict, sequence_size = self.generate_and_add_mask(
@@ -282,7 +281,7 @@ class TFRecordExampleParser(TFRecordParser):
         dict
             feature specification dictionary that can be used to parse TFRecords
         """
-        features_spec = dict()
+        features_spec = {}
 
         for feature_info in self.feature_config.get_all_features():
             serving_info = feature_info["serving_info"]
@@ -449,8 +448,8 @@ class TFRecordSequenceExampleParser(TFRecordParser):
             Sequence features (or feature lists) from the serialized SequenceExample
         """
 
-        context_features_spec = dict()
-        sequence_features_spec = dict()
+        context_features_spec = {}
+        sequence_features_spec = {}
 
         for feature_info in self.feature_config.get_all_features():
             if feature_info.get("name") == self.feature_config.get_mask("name"):
@@ -469,8 +468,10 @@ class TFRecordSequenceExampleParser(TFRecordParser):
                     sequence_features_spec[feature_name] = io.VarLenFeature(
                         dtype=dtype)
                 else:
-                    raise KeyError("Invalid SequenceExample type: {}".format(
-                        feature_info["tfrecord_type"]))
+                    raise KeyError(
+                        f'Invalid SequenceExample type: {feature_info["tfrecord_type"]}'
+                    )
+
 
         return context_features_spec, sequence_features_spec
 
@@ -718,7 +719,7 @@ def get_parse_fn(
             pad_sequence=pad_sequence,
         )
     else:
-        raise KeyError("Invalid TFRecord type specified: {}".format(tfrecord_type))
+        raise KeyError(f"Invalid TFRecord type specified: {tfrecord_type}")
 
     return parser.get_parse_fn()
 
@@ -803,10 +804,9 @@ def read(
 
     if logger:
         logger.info(
-            "Created TFRecordDataset from SequenceExample protobufs from {} files : {}".format(
-                len(tfrecord_files), str(tfrecord_files)[:50]
-            )
+            f"Created TFRecordDataset from SequenceExample protobufs from {len(tfrecord_files)} files : {str(tfrecord_files)[:50]}"
         )
+
 
     # We apply prefetch as it improved train/test/validation throughput by 30% in some real model training.
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)

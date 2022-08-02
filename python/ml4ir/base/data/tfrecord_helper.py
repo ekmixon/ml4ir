@@ -30,7 +30,7 @@ def _get_feature_fn(dtype):
     elif dtype == tf.int64:
         return _int64_feature
     else:
-        raise Exception("Feature dtype {} not supported".format(dtype))
+        raise Exception(f"Feature dtype {dtype} not supported")
 
 
 def get_example_proto(row, features):
@@ -50,7 +50,7 @@ def get_example_proto(row, features):
         Example object loaded from the specified row
     """
 
-    features_dict = dict()
+    features_dict = {}
     for feature_info in features:
         feature_name = feature_info["name"]
         feature_fn = _get_feature_fn(feature_info["dtype"])
@@ -61,14 +61,13 @@ def get_example_proto(row, features):
         # https://stackoverflow.com/questions/47143631/
         # how-do-i-preserve-datatype-when-using-apply-row-wise-in-pandas-dataframe
         if feature_name not in row:
-            raise Exception(
-                "Could not find column {} in record: {}".format(feature_name, str(row))
-            )
+            raise Exception(f"Could not find column {feature_name} in record: {str(row)}")
         features_dict[feature_name] = feature_fn(
-            [row[feature_name]]
-            if not pd.isna(row[feature_name])
-            else [feature_info["default_value"]]
+            [feature_info["default_value"]]
+            if pd.isna(row[feature_name])
+            else [row[feature_name]]
         )
+
 
     return train.Example(features=train.Features(feature=features_dict))
 
@@ -90,8 +89,8 @@ def get_sequence_example_proto(group, context_features, sequence_features):
     `SequenceExample` object
         SequenceExample object loaded the dataframe group
     """
-    sequence_features_dict = dict()
-    context_features_dict = dict()
+    sequence_features_dict = {}
+    context_features_dict = {}
 
     for feature_info in context_features:
         feature_name = feature_info["name"]

@@ -38,7 +38,7 @@ def get_metrics_impl(
         List of metric names or Metric instances that will be used for
         computing validation and test metrics on RelevanceModel
     """
-    metrics_impl: List[Union[Metric, str]] = list()
+    metrics_impl: List[Union[Metric, str]] = []
 
     for metric in metrics:
         if isinstance(metric, str):

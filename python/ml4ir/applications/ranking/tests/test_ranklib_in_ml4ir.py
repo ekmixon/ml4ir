@@ -44,9 +44,12 @@ class TestRanklibConversion(unittest.TestCase):
         exFeatureConfig = self.parse_config(
             TFRecordTypeKey.SEQUENCE_EXAMPLE, self.feature_config_yaml, io)
         preprocessing_keys_to_fns = {}
-        if 'preprocessing_info' in exFeatureConfig.get_label():
-            if exFeatureConfig.get_label()['preprocessing_info'][0]['fn'] == 'convert_label_to_clicks':
-                preprocessing_keys_to_fns['convert_label_to_clicks'] = convert_label_to_clicks
+        if (
+            'preprocessing_info' in exFeatureConfig.get_label()
+            and exFeatureConfig.get_label()['preprocessing_info'][0]['fn']
+            == 'convert_label_to_clicks'
+        ):
+            preprocessing_keys_to_fns['convert_label_to_clicks'] = convert_label_to_clicks
 
         dataset = RelevanceDataset(
             data_dir=INPUT_DIR,
@@ -61,31 +64,19 @@ class TestRanklibConversion(unittest.TestCase):
             non_zero_features_only=NON_ZERO_FEATURES_ONLY,
             max_sequence_size=319,
         )
-        non_one_hot = False
-        chk = [e for e in dataset.train]
-        for e in chk:
-            if sum(e[1][0]).numpy() > 1:
-                non_one_hot = True
-                break
-        assert non_one_hot == True
+        chk = list(dataset.train)
+        non_one_hot = any(sum(e[1][0]).numpy() > 1 for e in chk)
+        assert non_one_hot
         assert len(chk) == 49
 
-        non_one_hot = False
-        chk = [e for e in dataset.validation]
-        for e in chk:
-            if sum(e[1][0]).numpy() > 1:
-                non_one_hot = True
-                break
-        assert non_one_hot == True
+        chk = list(dataset.validation)
+        non_one_hot = any(sum(e[1][0]).numpy() > 1 for e in chk)
+        assert non_one_hot
         assert len(chk) == 49
 
-        non_one_hot = False
-        chk = [e for e in dataset.test]
-        for e in chk:
-            if sum(e[1][0]).numpy() > 1:
-                non_one_hot = True
-                break
-        assert non_one_hot == True
+        chk = list(dataset.test)
+        non_one_hot = any(sum(e[1][0]).numpy() > 1 for e in chk)
+        assert non_one_hot
         assert len(chk) == 49
 
     def test_ranklib_in_ml4ir_click_conversion(self):
@@ -110,17 +101,17 @@ class TestRanklibConversion(unittest.TestCase):
             non_zero_features_only=NON_ZERO_FEATURES_ONLY,
             max_sequence_size=319,
         )
-        chk = [e for e in dataset.train]
+        chk = list(dataset.train)
         for e in chk:
             assert max(e[1][0]).numpy() == 1
         assert len(chk) == 49
 
-        chk = [e for e in dataset.validation]
+        chk = list(dataset.validation)
         for e in chk:
             assert max(e[1][0]).numpy() == 1
         assert len(chk) == 49
 
-        chk = [e for e in dataset.test]
+        chk = list(dataset.test)
         for e in chk:
             assert max(e[1][0]).numpy() == 1
         assert len(chk) == 49

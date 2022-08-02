@@ -57,12 +57,7 @@ def get_predict_fn(
 
     """
     # Load the forward pass function for the tensorflow model
-    if is_compiled:
-        infer = model
-    else:
-        # If SavedModel was loaded without compilation
-        infer = model.signatures[inference_signature]
-
+    infer = model if is_compiled else model.signatures[inference_signature]
     # Get features to log
     features_to_log = [f.get("node_name", f["name"]) for f in features_to_return] + [output_name]
 
@@ -94,7 +89,7 @@ def get_predict_fn(
 
             mask = _flatten_records(features["mask"])
 
-        predictions_dict = dict()
+        predictions_dict = {}
         for feature_name in features_to_log:
             if feature_name == feature_config.get_label(key="node_name"):
                 feat_ = label
@@ -114,7 +109,7 @@ def get_predict_fn(
 
         # Explode context features to each record for logging
         # NOTE: This assumes that the record dimension is on axis 1, like previously
-        for feature_name in predictions_dict.keys():
+        for feature_name in predictions_dict:
             feat_ = predictions_dict[feature_name]
             if tfrecord_type == TFRecordTypeKey.SEQUENCE_EXAMPLE:
                 feat_ = tf.cond(

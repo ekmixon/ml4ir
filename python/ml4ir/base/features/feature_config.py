@@ -101,28 +101,28 @@ class FeatureConfig:
         """
         Initialize the feature attributes with empty lists accordingly
         """
-        self.all_features: List[Optional[Dict]] = list()
+        self.all_features: List[Optional[Dict]] = []
         self.query_key: Optional[Dict] = None
         self.label: Optional[Dict] = None
         self.mask: Optional[Dict] = None
-        self.features: List[Optional[Dict]] = list()
+        self.features: List[Optional[Dict]] = []
 
         # Features that can be used for training the model
-        self.train_features: List[Dict] = list()
+        self.train_features: List[Dict] = []
 
         # Features that provide additional information about the query+records
-        self.metadata_features: List[Dict] = list()
+        self.metadata_features: List[Dict] = []
 
         # Features to log at inference time
-        self.features_to_log: List[Dict] = list()
+        self.features_to_log: List[Dict] = []
 
         # Features to be used as keys for computing group metrics
         # NOTE: Implementation is open-ended
-        self.group_metrics_keys: List[Dict] = list()
+        self.group_metrics_keys: List[Dict] = []
 
         # Features to be used as secondary labels for computing secondary metrics
         # NOTE: Implementation is open-ended
-        self.secondary_labels: List[Dict] = list()
+        self.secondary_labels: List[Dict] = []
 
     @staticmethod
     def get_instance(feature_config_dict: dict, tfrecord_type: str, logger: Logger):
@@ -204,7 +204,7 @@ class FeatureConfig:
             self.logger.info(
                 "Trainable Features : \n{}".format("\n".join(self.get_train_features("name")))
             )
-            self.logger.info("Label : {}".format(self.get_label("name")))
+            self.logger.info(f'Label : {self.get_label("name")}')
             self.logger.info(
                 "Metadata Features : \n{}".format("\n".join(self.get_metadata_features("name")))
             )
@@ -226,13 +226,12 @@ class FeatureConfig:
         str or bool or dict
             Dictionary value if key is passed, otherwise return input dictionary
         """
-        if key:
-            if key == "node_name":
-                return dict_.get("node_name", dict_["name"])
-            else:
-                return dict_.get(key)
-        else:
+        if not key:
             return dict_
+        if key == "node_name":
+            return dict_.get("node_name", dict_["name"])
+        else:
+            return dict_.get(key)
 
     def _get_list_of_keys_or_dicts(self, list_of_dicts, key: str = None):
         """
@@ -325,7 +324,7 @@ class FeatureConfig:
             if feature_info["name"] == name:
                 return feature_info
 
-        raise KeyError("No feature named {} in FeatureConfig".format(name))
+        raise KeyError(f"No feature named {name} in FeatureConfig")
 
     def set_feature(self, name: str, new_feature_info: dict):
         """
@@ -347,11 +346,10 @@ class FeatureConfig:
                 self.features_dict["features"].remove(feature_info)
                 self.features_dict["features"].append(new_feature_info)
 
-        if feature_found:
-            self.initialize_features()
-            self.extract_features()
-        else:
-            raise KeyError("No feature named {} in FeatureConfig".format(name))
+        if not feature_found:
+            raise KeyError(f"No feature named {name} in FeatureConfig")
+        self.initialize_features()
+        self.extract_features()
 
     def get_all_features(
         self, key: str = None, include_label: bool = True, include_mask: bool = True
@@ -520,7 +518,7 @@ class FeatureConfig:
         elif feature_info["dtype"] == tf.string:
             return feature_info["serving_info"].get("default_value", "")
         else:
-            raise Exception("Unknown dtype {}".format(feature_info["dtype"]))
+            raise Exception(f'Unknown dtype {feature_info["dtype"]}')
 
     def define_inputs(self) -> Dict[str, Input]:
         """
@@ -535,7 +533,7 @@ class FeatureConfig:
         def get_shape(feature_info: dict):
             return feature_info.get("shape", (1,))
 
-        inputs: Dict[str, Input] = dict()
+        inputs: Dict[str, Input] = {}
         for feature_info in self.get_all_features(include_label=False):
             """
                 NOTE: We currently do NOT define label as an input node in the model
@@ -583,9 +581,7 @@ class FeatureConfig:
             Flattened dictionary of important configuration keys and values
             that can be used for tracking the experiment run
         """
-        config = dict()
-
-        config["num_trainable_features"] = len(self.get_train_features())
+        config = {"num_trainable_features": len(self.get_train_features())}
 
         for feature_info in self.get_train_features():
             feature_name = feature_info.get("node_name", feature_info["name"])
@@ -593,12 +589,11 @@ class FeatureConfig:
             # Track preprocessing arguments
             if "preprocessing_info" in feature_info:
                 for preprocessing_info in feature_info["preprocessing_info"]:
-                    config.update(
-                        {
-                            "{}_{}_{}".format(feature_name, preprocessing_info["fn"], k): v
-                            for k, v in preprocessing_info["args"].items()
-                        }
-                    )
+                    config |= {
+                        f'{feature_name}_{preprocessing_info["fn"]}_{k}': v
+                        for k, v in preprocessing_info["args"].items()
+                    }
+
 
             # Track feature layer arguments
             if "feature_layer_info" in feature_info:
@@ -606,10 +601,11 @@ class FeatureConfig:
                 if "args" in feature_layer_info:
                     config.update(
                         {
-                            "{}_{}".format(feature_name, k): v
+                            f"{feature_name}_{k}": v
                             for k, v in feature_layer_info["args"].items()
                         }
                     )
+
 
         return config
 
@@ -754,9 +750,9 @@ class SequenceExampleFeatureConfig(FeatureConfig):
         # Feature to track padded records
         self.mask = None
         # Features that contain information at the query level common to all records
-        self.context_features = list()
+        self.context_features = []
         # Features that contain information at the record level
-        self.sequence_features = list()
+        self.sequence_features = []
 
     def extract_features(self):
         """
@@ -784,11 +780,9 @@ class SequenceExampleFeatureConfig(FeatureConfig):
                 self.sequence_features.append(feature_info)
             else:
                 raise TypeError(
-                    "tfrecord_type should be either context or sequence "
-                    "but is {} for {}".format(
-                        feature_info.get("tfrecord_type"), feature_info.get("name")
-                    )
+                    f'tfrecord_type should be either context or sequence but is {feature_info.get("tfrecord_type")} for {feature_info.get("name")}'
                 )
+
 
             if feature_info.get("log_at_inference", False):
                 self.features_to_log.append(feature_info)
@@ -850,7 +844,7 @@ class SequenceExampleFeatureConfig(FeatureConfig):
             self.logger.info(
                 "Trainable Features : \n{}".format("\n".join(self.get_train_features("name")))
             )
-            self.logger.info("Label : {}".format(self.get_label("name")))
+            self.logger.info(f'Label : {self.get_label("name")}')
             self.logger.info(
                 "Metadata Features : \n{}".format("\n".join(self.get_metadata_features("name")))
             )
@@ -941,7 +935,7 @@ class SequenceExampleFeatureConfig(FeatureConfig):
             else:
                 return feature_info.get("shape", (1,))
 
-        inputs: Dict[str, Input] = dict()
+        inputs: Dict[str, Input] = {}
         for feature_info in self.get_all_features(include_label=False):
             """
                 NOTE: We currently do NOT define label as an input node in the model
@@ -982,7 +976,7 @@ class SequenceExampleFeatureConfig(FeatureConfig):
             if ((not required_only) or (f["serving_info"].get("required", False)))
         ]
 
-        dummy_query = dict()
+        dummy_query = {}
         for feature_info in self.get_all_features():
             dummy_value = self.get_default_value(feature_info)
             feature_node_name = feature_info.get("node_name", feature_info["name"])

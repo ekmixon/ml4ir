@@ -48,7 +48,7 @@ def categorical_embedding_with_hash_buckets(feature_tensor, feature_info, file_i
             can be one of "mean", "sum", "concat" representing the mode of combining embeddings from each categorical embedding
     """
     feature_layer_info = feature_info.get("feature_layer_info")
-    embeddings_list = list()
+    embeddings_list = []
     for i in range(feature_layer_info["args"]["num_hash_buckets"]):
         augmented_string = layers.Lambda(lambda x: tf.add(x, str(i)))(feature_tensor)
 
@@ -59,35 +59,38 @@ def categorical_embedding_with_hash_buckets(feature_tensor, feature_info, file_i
             layers.Embedding(
                 input_dim=feature_layer_info["args"]["hash_bucket_size"],
                 output_dim=feature_layer_info["args"]["embedding_size"],
-                name="categorical_embedding_{}_{}".format(feature_info.get("name"), i),
+                name=f'categorical_embedding_{feature_info.get("name")}_{i}',
             )(hash_bucket)
         )
+
 
     embedding = None
     if feature_layer_info["args"]["merge_mode"] == "mean":
         embedding = tf.reduce_mean(
             embeddings_list,
             axis=0,
-            name="categorical_embedding_{}".format(feature_info.get("name")),
+            name=f'categorical_embedding_{feature_info.get("name")}',
         )
+
     elif feature_layer_info["args"]["merge_mode"] == "sum":
         embedding = tf.reduce_sum(
             embeddings_list,
             axis=0,
-            name="categorical_embedding_{}".format(feature_info.get("name")),
+            name=f'categorical_embedding_{feature_info.get("name")}',
         )
+
     elif feature_layer_info["args"]["merge_mode"] == "concat":
         embedding = tf.concat(
             embeddings_list,
             axis=-1,
-            name="categorical_embedding_{}".format(feature_info.get("name")),
+            name=f'categorical_embedding_{feature_info.get("name")}',
         )
+
     else:
         raise KeyError(
-            "The merge_mode currently supported under categorical_embedding_with_hash_buckets are ['mean', 'sum', 'concat']. merge_mode specified in the feature config: {}".format(
-                feature_layer_info["args"]["merge_mode"]
-            )
+            f"""The merge_mode currently supported under categorical_embedding_with_hash_buckets are ['mean', 'sum', 'concat']. merge_mode specified in the feature config: {feature_layer_info["args"]["merge_mode"]}"""
         )
+
 
     embedding = tf.expand_dims(embedding, axis=1)
 
@@ -139,8 +142,9 @@ def categorical_embedding_with_indices(feature_tensor, feature_info, file_io: Fi
 
     embedding = layers.DenseFeatures(
         embedding_fc,
-        name="{}_embedding".format(feature_info.get("node_name", feature_info["name"])),
+        name=f'{feature_info.get("node_name", feature_info["name"])}_embedding',
     )({CATEGORICAL_VARIABLE: feature_tensor})
+
     embedding = tf.expand_dims(embedding, axis=1)
 
     return embedding
@@ -204,12 +208,11 @@ def categorical_embedding_to_encoding_bilstm(feature_tensor, feature_info, file_
 
     categorical_embeddings = tf.squeeze(categorical_embeddings, axis=1)
     kernel_initializer = args.get("lstm_kernel_initializer", "glorot_uniform")
-    encoding = get_bilstm_encoding(
+    return get_bilstm_encoding(
         embedding=categorical_embeddings,
         lstm_units=int(args["encoding_size"] / 2),
         kernel_initializer=kernel_initializer,
     )
-    return encoding
 
 
 def categorical_embedding_with_vocabulary_file(feature_tensor, feature_info, file_io: FileIO):
@@ -264,11 +267,11 @@ def categorical_embedding_with_vocabulary_file(feature_tensor, feature_info, fil
     )
     feature_info_new["feature_layer_info"]["args"]["default_value"] = vocabulary_size
 
-    embedding = categorical_embedding_with_indices(
-        feature_tensor=categorical_indices, feature_info=feature_info_new, file_io=file_io
+    return categorical_embedding_with_indices(
+        feature_tensor=categorical_indices,
+        feature_info=feature_info_new,
+        file_io=file_io,
     )
-
-    return embedding
 
 
 class CategoricalDropout(layers.Layer):
@@ -408,11 +411,11 @@ def categorical_embedding_with_vocabulary_file_and_dropout(
     feature_info_new["feature_layer_info"]["args"]["num_buckets"] = vocabulary_size
     feature_info_new["feature_layer_info"]["args"]["default_value"] = 0
 
-    embedding = categorical_embedding_with_indices(
-        feature_tensor=feature_tensor_indices, feature_info=feature_info_new, file_io=file_io
+    return categorical_embedding_with_indices(
+        feature_tensor=feature_tensor_indices,
+        feature_info=feature_info_new,
+        file_io=file_io,
     )
-
-    return embedding
 
 
 def categorical_indicator_with_vocabulary_file(feature_tensor, feature_info, file_io: FileIO):
@@ -506,8 +509,9 @@ def categorical_indicator_with_vocabulary_file(feature_tensor, feature_info, fil
 
     categorical_one_hot = layers.DenseFeatures(
         indicator_fc,
-        name="{}_one_hot".format(feature_info.get("node_name", feature_info["name"])),
+        name=f'{feature_info.get("node_name", feature_info["name"])}_one_hot',
     )({CATEGORICAL_VARIABLE: feature_tensor_indices})
+
     categorical_one_hot = tf.expand_dims(categorical_one_hot, axis=1)
 
     return categorical_one_hot
@@ -629,14 +633,16 @@ class VocabLookup(layers.Layer):
             self.lookup_table = lookup.StaticVocabularyTable(
                 initializer=table_init,
                 num_oov_buckets=self.num_oov_buckets,
-                name="{}_lookup_table".format(self.feature_name),
+                name=f"{self.feature_name}_lookup_table",
             )
+
         elif self.default_value is not None:
             self.lookup_table = lookup.StaticHashTable(
                 initializer=table_init,
                 default_value=self.default_value,
-                name="{}_lookup_table".format(self.feature_name),
+                name=f"{self.feature_name}_lookup_table",
             )
+
         else:
             raise KeyError("You must specify either num_oov_buckets or default_value")
         self.built = True

@@ -138,8 +138,8 @@ def define_feature_layer(
         Apply feature transformation functions and reshape the input
         feature tensors as specified by the FeatureConfig
         """
-        train_features = dict()
-        metadata_features = dict()
+        train_features = {}
+        metadata_features = {}
 
         # Define a dynamic tensor tiling shape
         # NOTE: Can not be hardcoded as we allow for varying sequence_size at inference time

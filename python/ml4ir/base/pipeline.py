@@ -87,8 +87,10 @@ class RelevancePipeline(object):
         self.local_io.make_directory(self.logs_dir_local, clear_dir=True)
         self.logger: Logger = self.setup_logging()
         self.logger.info(
-            "Logging initialized. Saving logs to : {}".format(self.logs_dir_local))
-        self.logger.info("Run ID: {}".format(self.run_id))
+            f"Logging initialized. Saving logs to : {self.logs_dir_local}"
+        )
+
+        self.logger.info(f"Run ID: {self.run_id}")
         self.logger.debug("CLI args: \n{}".format(
             json.dumps(vars(self.args), indent=4)))
         self.local_io.set_logger(self.logger)
@@ -222,8 +224,7 @@ class RelevancePipeline(object):
         Override this method to create custom dataset objects
         """
 
-        # Prepare Dataset
-        relevance_dataset = RelevanceDataset(
+        return RelevanceDataset(
             data_dir=self.data_dir_local,
             data_format=self.data_format,
             feature_config=self.feature_config,
@@ -241,8 +242,6 @@ class RelevancePipeline(object):
             non_zero_features_only=self.non_zero_features_only,
             keep_additional_info=self.keep_additional_info,
         )
-
-        return relevance_dataset
 
     def get_relevance_model(self, feature_layer_keys_to_fns={}) -> RelevanceModel:
         """

@@ -91,22 +91,22 @@ class ClassificationPipeline(RelevancePipeline):
         # Define optimizer
         optimizer: Optimizer = get_optimizer(model_config=self.model_config)
 
-        # Combine the above to define a RelevanceModel
-        relevance_model: RelevanceModel = ClassificationModel(
+        return ClassificationModel(
             feature_config=self.feature_config,
             scorer=scorer,
             metrics=metrics,
             optimizer=optimizer,
             tfrecord_type=self.tfrecord_type,
             model_file=self.args.model_file,
-            initialize_layers_dict=ast.literal_eval(self.args.initialize_layers_dict),
+            initialize_layers_dict=ast.literal_eval(
+                self.args.initialize_layers_dict
+            ),
             freeze_layers_list=ast.literal_eval(self.args.freeze_layers_list),
             compile_keras_model=self.args.compile_keras_model,
             output_name=self.args.output_name,
             file_io=self.local_io,
             logger=self.logger,
         )
-        return relevance_model
 
     def get_relevance_dataset(
         self, parse_tfrecord=True, preprocessing_keys_to_fns={}
@@ -140,8 +140,7 @@ class ClassificationPipeline(RelevancePipeline):
             )
         }
 
-        # Prepare Dataset
-        relevance_dataset = RelevanceDataset(
+        return RelevanceDataset(
             data_dir=self.data_dir_local,
             data_format=self.data_format,
             feature_config=self.feature_config,
@@ -157,8 +156,6 @@ class ClassificationPipeline(RelevancePipeline):
             file_io=self.local_io,
             logger=self.logger,
         )
-
-        return relevance_dataset
 
 
 def main(argv):

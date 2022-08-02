@@ -112,7 +112,6 @@ class RankingModel(RelevanceModel):
 
         Override this method to implement your own evaluation metrics.
         """
-        metrics_dict = dict()
         group_metrics_keys = self.feature_config.get_group_metrics_keys()
         evaluation_features = (
             group_metrics_keys
@@ -145,9 +144,8 @@ class RankingModel(RelevanceModel):
             max_sequence_size=self.max_sequence_size,
         )
 
-        batch_count = 0
         df_grouped_stats = pd.DataFrame()
-        for predictions_dict in test_dataset.map(_predict_fn).take(-1):
+        for batch_count, predictions_dict in enumerate(test_dataset.map(_predict_fn).take(-1), start=1):
             predictions_df = pd.DataFrame(predictions_dict)
 
             df_batch_grouped_stats = metrics_helper.get_grouped_stats(
@@ -166,20 +164,16 @@ class RankingModel(RelevanceModel):
             else:
                 df_grouped_stats = df_grouped_stats.add(
                     df_batch_grouped_stats, fill_value=0.0)
-            batch_count += 1
             if batch_count % logging_frequency == 0:
-                self.logger.info(
-                    "Finished evaluating {} batches".format(batch_count))
+                self.logger.info(f"Finished evaluating {batch_count} batches")
 
         # Compute overall metrics
         df_overall_metrics = metrics_helper.summarize_grouped_stats(
             df_grouped_stats)
-        self.logger.info("Overall Metrics: \n{}".format(df_overall_metrics))
+        self.logger.info(f"Overall Metrics: \n{df_overall_metrics}")
 
-        # Log metrics to weights and biases
-        metrics_dict.update(
-            {"test_{}".format(k): v for k,
-             v in df_overall_metrics.to_dict().items()}
+        metrics_dict = dict(
+            {f"test_{k}": v for k, v in df_overall_metrics.to_dict().items()}
         )
 
         df_group_metrics = None
@@ -204,20 +198,17 @@ class RankingModel(RelevanceModel):
             # Compute group metrics summary
             df_group_metrics_summary = df_group_metrics.describe()
             self.logger.info(
-                "Computing group metrics using keys: {}".format(
-                    self.feature_config.get_group_metrics_keys("node_name")
-                )
+                f'Computing group metrics using keys: {self.feature_config.get_group_metrics_keys("node_name")}'
             )
-            self.logger.info("Groupwise Metrics: \n{}".format(
-                df_group_metrics_summary.T))
+
+            self.logger.info(f"Groupwise Metrics: \n{df_group_metrics_summary.T}")
 
             # Log metrics to weights and biases
-            metrics_dict.update(
-                {
-                    "test_group_mean_{}".format(k): v
-                    for k, v in df_group_metrics_summary.T["mean"].to_dict().items()
-                }
-            )
+            metrics_dict |= {
+                f"test_group_mean_{k}": v
+                for k, v in df_group_metrics_summary.T["mean"].to_dict().items()
+            }
+
 
         return df_overall_metrics, df_group_metrics, metrics_dict
 

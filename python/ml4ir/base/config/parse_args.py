@@ -37,7 +37,7 @@ class CustomFeatureDictUpdater(Action):
         old_custom_args = getattr(namespace, self.dest)
         new_custom_args = {".".join(option_string.split(".")[1:]): values}
         if isinstance(old_custom_args, dict):
-            new_custom_args.update(old_custom_args)
+            new_custom_args |= old_custom_args
         setattr(namespace, self.dest, new_custom_args)
 
 
@@ -375,12 +375,14 @@ class RelevanceArgParser(ArgumentParser):
         """
         dynamic_args = self.parse_known_args(args)[1]
 
-        for i in range(int(len(dynamic_args) / 2)):
+        for i in range(len(dynamic_args) // 2):
             key = dynamic_args[i * 2]
             if key.split(".")[0] not in {"--feature_config", "--model_config"}:
                 raise KeyError(
-                    "Dynamic arguments currently supported must have the prefix feature_config. or model_config., but found: {}".format(key))
-            dest = "{}_custom".format(key.split(".")[0]).replace("--", "")
+                    f"Dynamic arguments currently supported must have the prefix feature_config. or model_config., but found: {key}"
+                )
+
+            dest = f'{key.split(".")[0]}_custom'.replace("--", "")
             self.add_argument(key,
                               dest=dest,
                               action=CustomFeatureDictUpdater)

@@ -68,8 +68,18 @@ class DynamicArgsTest(unittest.TestCase):
 
         # Test feature config updates
         base_dict = self.feature_config_dict
-        assert not base_dict["features"][4]["feature_layer_info"]["args"]["encoding_size"] == 1024
-        assert not base_dict["features"][6]["feature_layer_info"]["args"]["embedding_size"] == 1024
+        assert (
+            base_dict["features"][4]["feature_layer_info"]["args"]["encoding_size"]
+            != 1024
+        )
+
+        assert (
+            base_dict["features"][6]["feature_layer_info"]["args"][
+                "embedding_size"
+            ]
+            != 1024
+        )
+
 
         base_dict = dynamic_args.override_with_dynamic_args(
             base_dict,
@@ -83,8 +93,8 @@ class DynamicArgsTest(unittest.TestCase):
 
         # Test model config updates
         base_dict = self.model_config_dict
-        assert not base_dict["optimizer"]["key"] == "sgd"
-        assert not base_dict["lr_schedule"]["learning_rate"] == 0.00005
+        assert base_dict["optimizer"]["key"] != "sgd"
+        assert base_dict["lr_schedule"]["learning_rate"] != 0.00005
 
         base_dict = dynamic_args.override_with_dynamic_args(
             base_dict,

@@ -230,7 +230,7 @@ class ClassificationModel(RelevanceModel):
         # Below, avoid doing predictions.tolist() as it explodes the memory
         # tolist() will create a list of lists, which consumes more memory
         # than a list on numpy arrays
-        predictions_df[self.output_name] = [x for x in predictions_]
+        predictions_df[self.output_name] = list(predictions_)
         if logs_dir:
             np.set_printoptions(formatter={'all':lambda x: str(x.decode('utf-8')) if isinstance(x, bytes) else str(x)},
                                 linewidth=sys.maxsize, threshold=sys.maxsize)  # write the full vector in the csv not ...
@@ -274,6 +274,9 @@ class ClassificationModel(RelevanceModel):
             # for 1-dim data we use np.hstack for the intended result
             predictions[key] = np.hstack(val) if len(predictions[key][0].shape) == 1 else np.vstack(
                 val)
-        predictions_df = pd.DataFrame({key: val if len(val.shape) == 1 else [inner for inner in val]
-                                       for key, val in predictions.items()})
-        return predictions_df
+        return pd.DataFrame(
+            {
+                key: val if len(val.shape) == 1 else list(val)
+                for key, val in predictions.items()
+            }
+        )

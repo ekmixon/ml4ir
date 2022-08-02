@@ -83,7 +83,7 @@ def define_tfrecord_signature(
         pad_sequence=pad_sequence,
     )
 
-    dtype_map = dict()
+    dtype_map = {}
     for feature_info in feature_config.get_all_features(include_label=False):
         feature_node_name = feature_info.get("node_name", feature_info["name"])
         dtype_map[feature_node_name] = feature_config.get_dtype(feature_info)

@@ -115,7 +115,7 @@ def write_from_df(
     """
 
     if logger:
-        logger.info("Writing SequenceExample protobufs to : {}".format(tfrecord_file))
+        logger.info(f"Writing SequenceExample protobufs to : {tfrecord_file}")
     with io.TFRecordWriter(tfrecord_file) as tf_writer:
         if tfrecord_type == TFRecordTypeKey.EXAMPLE:
             protos = df.apply(
@@ -135,11 +135,9 @@ def write_from_df(
             )
         else:
             raise Exception(
-                "You have entered {} as tfrecords write mode. "
-                "We only support {} and {}.".format(
-                    tfrecord_type, TFRecordTypeKey.EXAMPLE, TFRecordTypeKey.SEQUENCE_EXAMPLE
-                )
+                f"You have entered {tfrecord_type} as tfrecords write mode. We only support {TFRecordTypeKey.EXAMPLE} and {TFRecordTypeKey.SEQUENCE_EXAMPLE}."
             )
+
         # Write to disk
         for proto in protos:
             tf_writer.write(proto.SerializeToString())
@@ -172,7 +170,7 @@ def main(args):
         # Convert each CSV file individually - better performance
         for csv_file in csv_files:
             tfrecord_file: str = os.path.basename(csv_file).replace(".csv", "")
-            tfrecord_file: str = os.path.join(args.out_dir, "{}.tfrecord".format(tfrecord_file))
+            tfrecord_file: str = os.path.join(args.out_dir, f"{tfrecord_file}.tfrecord")
             write_from_files(
                 csv_files=[csv_file],
                 tfrecord_file=tfrecord_file,
