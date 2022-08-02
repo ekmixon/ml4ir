@@ -284,6 +284,8 @@ def temperature_scale(model: tf.keras.Model,
                                             initial_position=start)
 
     # evaluation on validation set before temperature scaling
+
+    # evaluation on validation set before temperature scaling
     logits_numpys, labels_numpys = get_logits_labels(intermediate_model, dataset.validation)
     original_acc_op, original_nll_loss_op, _ = eval_relevance_model(scorer, logits_numpys,
                                                                     labels_numpys)
@@ -322,11 +324,17 @@ def temperature_scale(model: tf.keras.Model,
     # note: temperature scaling does not change the accuracy as it does not change the maximum. So,
     # the temperature scaling predicted labels must be the same as  original
     # predicted labels: `original_predicted_label`
-    data_dic = {'original_scores': [x for x in original_softmaxes.numpy()],
-                'temperature_scaling_scores': [x for x in temperature_scaling_softmaxes.numpy()],
-                'original_predicted_label': tf.argmax(original_softmaxes, axis=-1).numpy(),
-                'true_label': labels_numpys_test,
-                }
+    data_dic = {
+        'original_scores': list(original_softmaxes.numpy()),
+        'temperature_scaling_scores': list(
+            temperature_scaling_softmaxes.numpy()
+        ),
+        'original_predicted_label': tf.argmax(
+            original_softmaxes, axis=-1
+        ).numpy(),
+        'true_label': labels_numpys_test,
+    }
+
 
     logger.info(f'original test accuracy: {acc_test_original}, \ntemperature scaling '
                      f'test accuracy: {acc_test_temperature_scaling} \n')

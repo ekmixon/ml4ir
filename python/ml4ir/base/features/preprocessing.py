@@ -131,9 +131,7 @@ def preprocess_text(
         >>> "abcabc123"
     """
     if remove_punctuation:
-        replacement = ""
-        if replace_with_whitespace:
-            replacement = " "
+        replacement = " " if replace_with_whitespace else ""
         punctuation_regex = (
             "[" + "".join([re.escape(c) for c in list(punctuation + replacement)]) + "]+"
         )
@@ -283,12 +281,11 @@ def convert_label_to_clicks(label_vector, dtype):
     """
 
     typ = dtype
-    if dtype == 'int':
+    if typ == 'int':
         typ = 'int64'
     maximum = tf.reduce_max(label_vector)
     cond = tf.math.equal(label_vector, maximum)
-    clicks = tf.dtypes.cast(cond, typ)
-    return clicks
+    return tf.dtypes.cast(cond, typ)
 
 ##########################################
 # Add any new preprocessing functions here

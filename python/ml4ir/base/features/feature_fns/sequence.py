@@ -51,24 +51,22 @@ def bytes_sequence_to_encoding_bilstm(feature_tensor, feature_info, file_io: Fil
     feature_tensor = tf.squeeze(feature_tensor, axis=1)
     if "embedding_size" in args:
         char_embedding = layers.Embedding(
-            name="{}_bytes_embedding".format(
-                feature_info.get("node_name", feature_info.get("name"))
-            ),
+            name=f'{feature_info.get("node_name", feature_info.get("name"))}_bytes_embedding',
             input_dim=256,
             output_dim=args["embedding_size"],
             mask_zero=True,
             input_length=args.get("max_length", None),
         )(feature_tensor)
+
     else:
         char_embedding = tf.one_hot(feature_tensor, depth=256)
 
     kernel_initializer = args.get("lstm_kernel_initializer", "glorot_uniform")
-    encoding = get_bilstm_encoding(
+    return get_bilstm_encoding(
         embedding=char_embedding,
         lstm_units=int(args["encoding_size"] / 2),
         kernel_initializer=kernel_initializer,
     )
-    return encoding
 
 
 def get_bilstm_encoding(embedding, lstm_units, kernel_initializer="glorot_uniform"):
@@ -138,13 +136,14 @@ def global_1d_pooling(feature_tensor, feature_info, file_io: FileIO):
             Default value: 2
     """
     args = feature_info["feature_layer_info"]["args"]
-    pooled_tensors = list()
+    pooled_tensors = []
 
     # Check if at least one pooling fn is specified
     if len(args["fns"]) == 0:
         raise ValueError(
-            "At least 1 pooling function should be specified. Found : {}".format(len(args["fns"]))
+            f'At least 1 pooling function should be specified. Found : {len(args["fns"])}'
         )
+
 
     # Define the masking value for each pooling op
     DEFAULT_MASKED_MAX_VAL = 2.0
@@ -209,16 +208,13 @@ def global_1d_pooling(feature_tensor, feature_info, file_io: FileIO):
 
         else:
             raise KeyError(
-                "{} pooling function not supported. Please use one of sum, mean, max, min, count_nonzero.".format(
-                    fn
-                )
+                f"{fn} pooling function not supported. Please use one of sum, mean, max, min, count_nonzero."
             )
+
 
     # Stack all the pooled tensors to get one fixed dimensional dense vector
     return tf.stack(
         pooled_tensors,
         axis=-1,
-        name="global_1d_pooling_{}".format(
-            feature_info.get("node_name", feature_info.get("name"))
-        ),
+        name=f'global_1d_pooling_{feature_info.get("node_name", feature_info.get("name"))}',
     )

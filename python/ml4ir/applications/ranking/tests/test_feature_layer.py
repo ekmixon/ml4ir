@@ -208,7 +208,7 @@ class RankingModelTest(RankingTestBase):
         # Strings 1 and 2 should result in the same embedding because they are both OOV
         # Check that each word, except the OOV ones are mapped to different encodings (actually different embeddings,
         # but the encoding on top should be equivalent as each row is a single word).
-        for word1_position in range(0, len(vocabulary)):
+        for word1_position in range(len(vocabulary)):
             # +1 to include one OOV word
             for word2_position in range(word1_position + 1, len(vocabulary) + 1):
                 if tf.reduce_all(
@@ -222,9 +222,9 @@ class RankingModelTest(RankingTestBase):
                                 sequence_encoding[word2_position],
                             )
                         ),
-                        msg="Check that non-OOV words map to different encodings, and not also not to OOV:"
-                        "{} vs. {}".format(word1, word2),
+                        msg=f"Check that non-OOV words map to different encodings, and not also not to OOV:{word1} vs. {word2}",
                     )
+
 
         self.assertTrue(
             tf.reduce_all(tf.equal(sequence_encoding[-1], sequence_encoding[-2])),

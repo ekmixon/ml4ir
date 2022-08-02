@@ -48,8 +48,10 @@ def setup_logging(
         from colorlog import ColoredFormatter
 
         color_formatter = ColoredFormatter(
-            "%(log_color)s" + LoggingConstants.LOG_FORMAT, datefmt=LoggingConstants.LOG_DATE_FORMAT
+            f"%(log_color)s{LoggingConstants.LOG_FORMAT}",
+            datefmt=LoggingConstants.LOG_DATE_FORMAT,
         )
+
     except ImportError:
         color_formatter = logging.Formatter(
             fmt=LoggingConstants.LOG_FORMAT, datefmt=LoggingConstants.LOG_DATE_FORMAT

@@ -41,14 +41,17 @@ def choose_optimizer(model_config, learning_rate_schedule):
 
     if 'optimizer' not in model_config:
         return tf_optimizers.Adam(learning_rate=learning_rate_schedule, clipvalue=5.0)
-    else:
-        optimizer_key = model_config['optimizer']['key']
-        if 'gradient_clip_value' in model_config['optimizer']:
-            config = {'learning_rate': learning_rate_schedule,
-                      'clipvalue': model_config['optimizer']['gradient_clip_value']}
-        else:
-            config = {'learning_rate': learning_rate_schedule}
-        return tf.keras.optimizers.get({'class_name': optimizer_key, 'config': config})
+    optimizer_key = model_config['optimizer']['key']
+    config = (
+        {
+            'learning_rate': learning_rate_schedule,
+            'clipvalue': model_config['optimizer']['gradient_clip_value'],
+        }
+        if 'gradient_clip_value' in model_config['optimizer']
+        else {'learning_rate': learning_rate_schedule}
+    )
+
+    return tf.keras.optimizers.get({'class_name': optimizer_key, 'config': config})
 
 
 def choose_scheduler(model_config):
@@ -137,10 +140,11 @@ def choose_scheduler(model_config):
                 )
             else:
                 raise ValueError(
-                    "Unsupported cyclic learning rate schedule type key: " + lr_schedule_type)
+                    f"Unsupported cyclic learning rate schedule type key: {lr_schedule_type}"
+                )
+
         else:
-            raise ValueError(
-                "Unsupported learning rate schedule key: " + lr_schedule_key)
+            raise ValueError(f"Unsupported learning rate schedule key: {lr_schedule_key}")
 
     return learning_rate_schedule
 

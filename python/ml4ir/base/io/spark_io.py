@@ -68,7 +68,7 @@ class SparkIO(FileIO):
         `pandas.DataFrame`
             pandas dataframe loaded from file
         """
-        self.log("Reading dataframe from : {}".format(infile))
+        self.log(f"Reading dataframe from : {infile}")
         return (
             self.spark_session.read.format("csv")
             .option("header", "true")
@@ -101,7 +101,7 @@ class SparkIO(FileIO):
         -----
         `sep` and `index_col` are not used in SparkIO
         """
-        self.log("Reading {} files from [{}, ..".format(len(infiles), infiles[0]))
+        self.log(f"Reading {len(infiles)} files from [{infiles[0]}, ..")
         return (
             self.spark_session.read.format("csv")
             .option("header", "true")
@@ -144,7 +144,7 @@ class SparkIO(FileIO):
         dict
             python dictionary loaded from file
         """
-        self.log("Reading JSON file : {}".format(infile))
+        self.log(f"Reading JSON file : {infile}")
         return json.loads(self.read_text_file(infile))
 
     def read_yaml(self, infile) -> dict:
@@ -161,7 +161,7 @@ class SparkIO(FileIO):
         dict
             python dictionary loaded from file
         """
-        self.log("Reading YAML file : {}".format(infile))
+        self.log(f"Reading YAML file : {infile}")
         return yaml.safe_load(self.read_text_file(infile))
 
     def path_exists(self, path: str) -> bool:
@@ -179,10 +179,10 @@ class SparkIO(FileIO):
             True if path exists; False otherwise
         """
         if self.hdfs.exists(self.get_path_from_str(path)):
-            self.log("Path exists : {}".format(path))
+            self.log(f"Path exists : {path}")
             return True
         else:
-            self.log("Path does not exist : {}".format(path))
+            self.log(f"Path does not exist : {path}")
             return False
 
     def rm_dir(self, dir_path: str):
@@ -196,7 +196,7 @@ class SparkIO(FileIO):
         """
         if self.path_exists(dir_path):
             self.hdfs.delete(self.get_path_from_str(dir_path), True)
-            self.log("Directory deleted : {}".format(dir_path))
+            self.log(f"Directory deleted : {dir_path}")
 
     def rm_file(self, file_path: str):
         """
@@ -209,7 +209,7 @@ class SparkIO(FileIO):
         """
         if self.path_exists(file_path):
             self.hdfs.delete(self.get_path_from_str(file_path), True)
-            self.log("File deleted : {}".format(file_path))
+            self.log(f"File deleted : {file_path}")
 
     def copy_from_hdfs(self, src: str, dest: str):
         """
@@ -224,7 +224,7 @@ class SparkIO(FileIO):
         """
         self.hdfs.copyToLocalFile(self.get_path_from_str(src), self.get_path_from_str(dest))
 
-        self.log("Finished copying files from {} to {}".format(src, dest))
+        self.log(f"Finished copying files from {src} to {dest}")
 
     def copy_to_hdfs(self, src: str, dest: str, overwrite=True):
         """
@@ -243,4 +243,4 @@ class SparkIO(FileIO):
 
         self.hdfs.copyFromLocalFile(self.get_path_from_str(src), self.get_path_from_str(dest))
 
-        self.log("Finished copying files from {} to {}".format(src, dest))
+        self.log(f"Finished copying files from {src} to {dest}")

@@ -137,7 +137,7 @@ class RankingTestBase(unittest.TestCase):
             RankingModelClass = LinearRankingModel
         else:
             RankingModelClass = RankingModel
-        relevance_model: RelevanceModel = RankingModelClass(
+        return RankingModelClass(
             feature_config=feature_config,
             tfrecord_type=self.args.tfrecord_type,
             scorer=scorer,
@@ -151,8 +151,6 @@ class RankingTestBase(unittest.TestCase):
             logger=self.logger,
             file_io=self.file_io,
         )
-
-        return relevance_model
 
 
 if __name__ == "__main__":

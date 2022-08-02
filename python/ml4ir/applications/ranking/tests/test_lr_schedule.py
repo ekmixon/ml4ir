@@ -137,16 +137,17 @@ class TestLrSchedules(unittest.TestCase):
         """Test a cyclic learning rate in model training"""
         Logger = logging_utils.setup_logging(
             reset=True,
-            file_name=os.path.join(INPUT_DIR + 'ranklib', "output_log.csv"),
+            file_name=os.path.join(f'{INPUT_DIR}ranklib', "output_log.csv"),
             log_to_file=True,
         )
+
 
         io = LocalIO()
         feature_config = self.parse_config(TFRecordTypeKey.SEQUENCE_EXAMPLE, self.feature_config_yaml_convert_to_clicks,
                                            io)
 
         dataset = RelevanceDataset(
-            data_dir=INPUT_DIR + '/ranklib',
+            data_dir=f'{INPUT_DIR}/ranklib',
             data_format=DataFormatKey.RANKLIB,
             feature_config=feature_config,
             tfrecord_type=TFRecordTypeKey.SEQUENCE_EXAMPLE,
@@ -158,6 +159,7 @@ class TestLrSchedules(unittest.TestCase):
             non_zero_features_only=NON_ZERO_FEATURES_ONLY,
             max_sequence_size=319,
         )
+
 
         # Define interaction model
         interaction_model: InteractionModel = UnivariateInteractionModel(
@@ -195,10 +197,8 @@ class TestLrSchedules(unittest.TestCase):
             file_io=io,
             logger=Logger,
         )
-        callbacks_list = []
         my_callback_object = LrCallback()
-        callbacks_list.append(my_callback_object)
-
+        callbacks_list = [my_callback_object]
         history = relevance_model.model.fit(
             x=dataset.train,
             validation_data=dataset.validation,

@@ -22,10 +22,10 @@ def parse_config(feature_config, logger: Optional[Logger] = None) -> RankingFeat
     if feature_config.endswith(".yaml"):
         feature_config = file_io.read_yaml(feature_config)
         if logger:
-            logger.info("Reading feature config from YAML file : {}".format(feature_config))
+            logger.info(f"Reading feature config from YAML file : {feature_config}")
     else:
         feature_config = yaml.safe_load(feature_config)
         if logger:
-            logger.info("Reading feature config from YAML string : {}".format(feature_config))
+            logger.info(f"Reading feature config from YAML string : {feature_config}")
 
     return SequenceExampleFeatureConfig(feature_config, logger=logger)

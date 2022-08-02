@@ -35,7 +35,7 @@ class DNN:
         """
         def get_op(layer_type, layer_args):
             if layer_type == DNNLayer.DENSE:
-                if not "units" in layer_args or layer_args["units"] == -1:
+                if "units" not in layer_args or layer_args["units"] == -1:
                     try:
                         label_feature_info = feature_config.get_label()
                         vocabulary_keys, vocabulary_ids = get_vocabulary_info(label_feature_info, self.file_io)

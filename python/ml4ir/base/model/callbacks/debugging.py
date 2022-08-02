@@ -11,23 +11,23 @@ class DebuggingCallback(callbacks.Callback):
 
     def on_train_batch_end(self, batch, logs=None):
         if batch % self.logging_frequency == 0:
-            self.logger.info("[epoch: {} | batch: {}] {}".format(self.epoch, batch, logs))
+            self.logger.info(f"[epoch: {self.epoch} | batch: {batch}] {logs}")
 
     def on_predict_batch_end(self, batch, logs=None):
         if batch % self.logging_frequency == 0:
-            self.logger.info("[batch: {}] {}".format(batch, logs))
+            self.logger.info(f"[batch: {batch}] {logs}")
 
     def on_test_batch_end(self, batch, logs=None):
         if batch % self.logging_frequency == 0:
-            self.logger.info("[batch: {}] {}".format(batch, logs))
+            self.logger.info(f"[batch: {batch}] {logs}")
 
     def on_epoch_end(self, epoch, logs=None):
-        self.logger.info("End of Epoch {}".format(self.epoch))
+        self.logger.info(f"End of Epoch {self.epoch}")
         self.logger.info(logs)
 
     def on_epoch_begin(self, epoch, logs=None):
         self.epoch = epoch + 1
-        self.logger.info("Starting Epoch : {}".format(self.epoch))
+        self.logger.info(f"Starting Epoch : {self.epoch}")
         self.logger.info(logs)
 
     def on_train_begin(self, logs):

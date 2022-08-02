@@ -141,7 +141,7 @@ class RelevanceModel:
             )
 
             # Write model summary to logs
-            model_summary = list()
+            model_summary = []
             self.model.summary(print_fn=lambda x: model_summary.append(x))
             if self.logger:
                 self.logger.info("\n".join(model_summary))
@@ -160,13 +160,13 @@ class RelevanceModel:
             for layer_name, layer_file in initialize_layers_dict.items():
                 layer = self.model.get_layer(layer_name)
                 layer.set_weights(self.file_io.load_numpy_array(layer_file, unzip=True))
-                self.logger.info("Setting {} weights from {}".format(layer_name, layer_file))
+                self.logger.info(f"Setting {layer_name} weights from {layer_file}")
 
             # Freeze layer weights
             for layer_name in freeze_layers_list:
                 layer = self.model.get_layer(layer_name)
                 layer.trainable = False
-                self.logger.info("Freezing {} layer".format(layer_name))
+                self.logger.info(f"Freezing {layer_name} layer")
 
             self.is_compiled = True
 
@@ -390,7 +390,7 @@ class RelevanceModel:
             This dictionary will be used for experiment tracking for each ml4ir run
         """
         if not monitor_metric.startswith("val_"):
-            monitor_metric = "val_{}".format(monitor_metric)
+            monitor_metric = f"val_{monitor_metric}"
         callbacks_list: list = self._build_callback_hooks(
             models_dir=models_dir,
             logs_dir=logs_dir,
@@ -412,7 +412,7 @@ class RelevanceModel:
 
             # Write metrics for experiment tracking
             # Returns a dictionary
-            train_metrics = dict()
+            train_metrics = {}
             for metric, value in history.history.items():
                 if not metric.startswith("val_"):
                     """
@@ -423,7 +423,7 @@ class RelevanceModel:
                     """
                     # History is a dict of key: list(values per epoch)
                     # We are capturing the metrics of the last epoch (-1)
-                    train_metrics["train_{}".format(metric)] = value[-1]
+                    train_metrics[f"train_{metric}"] = value[-1]
                 else:
                     train_metrics[metric] = value[-1]
 
@@ -485,9 +485,8 @@ class RelevanceModel:
             max_sequence_size=self.max_sequence_size,
         )
 
-        predictions_df_list = list()
-        batch_count = 0
-        for predictions_dict in test_dataset.map(_predict_fn).take(-1):
+        predictions_df_list = []
+        for batch_count, predictions_dict in enumerate(test_dataset.map(_predict_fn).take(-1), start=1):
             predictions_df = pd.DataFrame(predictions_dict)
             if logs_dir:
                 if os.path.isfile(outfile):
@@ -498,13 +497,12 @@ class RelevanceModel:
             else:
                 predictions_df_list.append(predictions_df)
 
-            batch_count += 1
             if batch_count % logging_frequency == 0:
-                self.logger.info("Finished predicting scores for {} batches".format(batch_count))
+                self.logger.info(f"Finished predicting scores for {batch_count} batches")
 
         predictions_df = None
         if logs_dir:
-            self.logger.info("Model predictions written to -> {}".format(outfile))
+            self.logger.info(f"Model predictions written to -> {outfile}")
         else:
             predictions_df = pd.concat(predictions_df_list)
 
@@ -643,13 +641,19 @@ class RelevanceModel:
             try:
                 self.file_io.save_numpy_array(
                     np_array=layer.get_weights(),
-                    file_path=os.path.join(model_file, "layers", "{}.npz".format(layer.name)),
+                    file_path=os.path.join(
+                        model_file, "layers", f"{layer.name}.npz"
+                    ),
                     zip=True,
                 )
-            except FileNotFoundError:
-                self.logger.warning("Error saving layer: {} due to FileNotFoundError. Skipping...".format(layer.name))
 
-        self.logger.info("Final model saved to : {}".format(model_file))
+            except FileNotFoundError:
+                self.logger.warning(
+                    f"Error saving layer: {layer.name} due to FileNotFoundError. Skipping..."
+                )
+
+
+        self.logger.info(f"Final model saved to : {model_file}")
 
     def load(self, model_file: str) -> Model:
         """
@@ -686,7 +690,7 @@ class RelevanceModel:
         """
         model = tf.keras.models.load_model(model_file, compile=False)
 
-        self.logger.info("Successfully loaded SavedModel from {}".format(model_file))
+        self.logger.info(f"Successfully loaded SavedModel from {model_file}")
         self.logger.warning("Retraining is not yet supported. Model is loaded with compile=False")
 
         return model
@@ -741,7 +745,7 @@ class RelevanceModel:
         callbacks_list : list
             List of callbacks to be used with the RelevanceModel training and evaluation
         """
-        callbacks_list: list = list()
+        callbacks_list: list = []
 
         if is_training:
             # Model checkpoint

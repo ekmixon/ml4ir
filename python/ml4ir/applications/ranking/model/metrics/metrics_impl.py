@@ -110,7 +110,7 @@ class MeanRankMetric(MeanMetricWrapper):
         If `sample_weight` is `None`, weights default to 1.
         Use `sample_weight` of 0 to mask values.
         """
-        name = "{}_{}".format(state, name)
+        name = f"{state}_{name}"
         # TODO: Handle Example dataset without mask and rank fields
         rank = metadata_features[feature_config.get_rank("node_name")]
         mask = metadata_features[feature_config.get_mask("node_name")]

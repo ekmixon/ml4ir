@@ -90,7 +90,7 @@ def read(
                                   logger=logger)
 
 
-    dataset = tfrecord_reader.read(
+    return tfrecord_reader.read(
         data_dir=tfrecord_dir,
         feature_config=feature_config,
         tfrecord_type=tfrecord_type,
@@ -101,5 +101,3 @@ def read(
         file_io=file_io,
         logger=logger,
     )
-
-    return dataset

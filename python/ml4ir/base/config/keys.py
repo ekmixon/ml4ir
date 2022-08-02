@@ -6,13 +6,11 @@ class Key:
 
     @classmethod
     def get_all_keys(cls):
-        keys = list()
-        for attr in dir(cls):
-            if not callable(getattr(cls, attr)):
-                if not attr.startswith("__"):
-                    keys.append(cls.__dict__[attr])
-
-        return keys
+        return [
+            cls.__dict__[attr]
+            for attr in dir(cls)
+            if not callable(getattr(cls, attr)) and not attr.startswith("__")
+        ]
 
 
 class ArchitectureKey(Key):

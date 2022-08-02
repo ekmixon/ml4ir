@@ -28,7 +28,7 @@ VOCABULARY_QUERY = [
     "guard", "not", "mouse", "stirring", "well", "good", "night", "if", "do", "meet", "horatio", "marcellus", "rivals",
     "my", "watch", "bid", "them", "make", "haste", "think", "hear", "ho", "friends", "ground", "liegemen", "dane"
 ]
-VOCABULARY_FEATURE_DOMAIN_ID = [char for char in string.ascii_lowercase.upper()]
+VOCABULARY_FEATURE_DOMAIN_ID = list(string.ascii_lowercase.upper())
 VOCABULARY_FEATURE_ENTITY = ["AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"]
 # toy feature (untrainable); used for grouped metric calculation:
 VOCABULARY_FEATURE_CODE = ["local", "production", "canary"]
@@ -55,8 +55,11 @@ class FeatureGenerator:
         self.__sequence_joiner = sequence_joiner
 
     def generate_feature(self):
-        query_tokens = [self.__vocabulary[randint(0, self.__vocabulary_length)]
-                        for _ in range(0, randint(1, self.__max_token_length))]
+        query_tokens = [
+            self.__vocabulary[randint(0, self.__vocabulary_length)]
+            for _ in range(randint(1, self.__max_token_length))
+        ]
+
         return self.__sequence_joiner.join(query_tokens)
 
 
@@ -79,8 +82,12 @@ def generate_csv_test_data():
     for (path, number_rows) in [(CSV_TRAIN_FILE_PATH, TOTAL_DATA_SIZE * PARTITION_TRAIN),
                                 (CSV_TEST_FILE_PATH, TOTAL_DATA_SIZE * PARTITION_TEST),
                                 (CSV_VALIDATION_FILE_PATH, TOTAL_DATA_SIZE * PARTITION_VALIDATION)]:
-        rows = [CSV_DATA_COLUMNS_HEADER] + [['query_id_' + str(idx)] + [g.generate_feature() for g in generators]
-                                   for idx in range(0, int(number_rows))]
+        rows = [CSV_DATA_COLUMNS_HEADER] + [
+            [f'query_id_{str(idx)}']
+            + [g.generate_feature() for g in generators]
+            for idx in range(int(number_rows))
+        ]
+
         with open(path, 'w', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_NONNUMERIC)
             writer.writerows(rows)

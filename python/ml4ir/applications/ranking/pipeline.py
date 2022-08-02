@@ -104,22 +104,22 @@ class RankingPipeline(RelevancePipeline):
             RankingModelClass = LinearRankingModel
         else:
             RankingModelClass = RankingModel
-        relevance_model: RelevanceModel = RankingModelClass(
+        return RankingModelClass(
             feature_config=self.feature_config,
             tfrecord_type=self.tfrecord_type,
             scorer=scorer,
             metrics=metrics,
             optimizer=optimizer,
             model_file=self.model_file,
-            initialize_layers_dict=ast.literal_eval(self.args.initialize_layers_dict),
+            initialize_layers_dict=ast.literal_eval(
+                self.args.initialize_layers_dict
+            ),
             freeze_layers_list=ast.literal_eval(self.args.freeze_layers_list),
             compile_keras_model=self.args.compile_keras_model,
             output_name=self.args.output_name,
             file_io=self.local_io,
             logger=self.logger,
         )
-
-        return relevance_model
 
     def validate_args(self):
         """
@@ -129,24 +129,20 @@ class RankingPipeline(RelevancePipeline):
 
         if self.loss_key not in LossKey.get_all_keys():
             raise Exception(
-                "Loss specified [{}] is not one of : {}".format(
-                    self.loss_key, LossKey.get_all_keys()
-                )
+                f"Loss specified [{self.loss_key}] is not one of : {LossKey.get_all_keys()}"
             )
+
 
         for metric_key in self.metrics_keys:
             if metric_key not in MetricKey.get_all_keys():
                 raise Exception(
-                    "Metric specified [{}] is not one of : {}".format(
-                        metric_key, MetricKey.get_all_keys()
-                    )
+                    f"Metric specified [{metric_key}] is not one of : {MetricKey.get_all_keys()}"
                 )
+
 
         if self.scoring_type not in ScoringTypeKey.get_all_keys():
             raise Exception(
-                "Scoring type specified [{}] is not one of : {}".format(
-                    self.scoring_type, ScoringTypeKey.get_all_keys()
-                )
+                f"Scoring type specified [{self.scoring_type}] is not one of : {ScoringTypeKey.get_all_keys()}"
             )
 
 

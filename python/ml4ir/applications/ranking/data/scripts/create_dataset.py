@@ -51,7 +51,7 @@ def run_dataset_creation(
     try:
         # Set seeds
         set_seeds(random_state)
-        logger.info("Set seeds with initial random state {}".format(random_state))
+        logger.info(f"Set seeds with initial random state {random_state}")
 
         # Load and parse feature config
         feature_config: FeatureConfig = FeatureConfig.get_instance(
@@ -64,8 +64,10 @@ def run_dataset_creation(
         # Create output location
         file_io.make_directory(out_dir)
         out_file = os.path.join(
-            out_dir, "synthetic_data_{}.csv".format(dt.datetime.now().strftime("%Y%m%d-%H%M%S"))
+            out_dir,
+            f'synthetic_data_{dt.datetime.now().strftime("%Y%m%d-%H%M%S")}.csv',
         )
+
 
         # Build data
         seed_data = load_seed_data(data_dir, logger, file_io)
@@ -80,11 +82,11 @@ def run_dataset_creation(
             logger,
         )
         file_io.write_df(df_synthetic, outfile=out_file, index=False)
-        logger.info("Synthetic data created! Location: {}".format(out_file))
+        logger.info(f"Synthetic data created! Location: {out_file}")
         return df_synthetic
 
     except Exception as e:
-        logger.error("!!! Error creating synthetic data: !!!\n{}".format(str(e)))
+        logger.error(f"!!! Error creating synthetic data: !!!\n{str(e)}")
         traceback.print_exc()
         return
 
@@ -97,8 +99,8 @@ def setup_logging(file_io: LocalIO):
     outfile: str = os.path.join(logs_dir, "output_log.csv")
     logger = logging_utils.setup_logging(reset=True, file_name=outfile, log_to_file=True)
 
-    logger.info("Logging initialized. Saving logs to : {}".format(logs_dir))
-    logger.info("Run ID: {}".format(run_id))
+    logger.info(f"Logging initialized. Saving logs to : {logs_dir}")
+    logger.info(f"Run ID: {run_id}")
     return logger
 
 
@@ -131,7 +133,7 @@ def generate_key(seed_dict, query_key, logger):
 def filter_nres(seed_data, feature_query_key, feature_rank, feature_nres, max_num_records, logger):
     nres = "num_results_calc"
     if nres in set(seed_data.columns):
-        nres = "{}_seed".format(nres)
+        nres = f"{nres}_seed"
     seed_data[nres] = seed_data.groupby(feature_query_key).transform("count")[feature_rank]
 
     # If the number of results feature name was given, remove queries with not all results included
@@ -232,15 +234,11 @@ def fill_data(
             }
             for mycol in list(seed_data.columns):
                 # Could also let user specify distribution to sample from for each feature
-                if mycol not in row_dict.keys() and is_clicked:
+                if mycol not in row_dict.keys():
                     # row_dict[mycol] = random.sample(seed_dict_clicked[mycol])
                     row_dict[
                         mycol
                     ] = None  # Default value, check type # Could also be functions we pass in
-                elif mycol not in row_dict.keys() and not is_clicked:
-                    # row_dict[mycol] = random.sample(seed_dict_unclicked[mycol])
-                    row_dict[mycol] = None
-
             row_dict = add_feature_highval(row_dict, feature_highval, is_clicked, click_rank)
 
             rows_df.append(row_dict)

@@ -131,13 +131,11 @@ class RankingModelTest(RankingTestBase):
             self.root_data_dir, "configs", self.feature_config_fname
         )
 
-        feature_config: FeatureConfig = FeatureConfig.get_instance(
+        return FeatureConfig.get_instance(
             tfrecord_type=self.args.tfrecord_type,
             feature_config_dict=self.file_io.read_yaml(feature_config_path),
             logger=self.logger,
         )
-
-        return feature_config
 
     def get_tfrecord_signature(self, feature_config: FeatureConfig):
         metrics_keys = ["categorical_accuracy"]

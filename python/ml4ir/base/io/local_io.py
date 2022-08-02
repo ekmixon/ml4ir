@@ -33,14 +33,13 @@ class LocalIO(FileIO):
         """
 
         if os.path.exists(dir_path):
-            if clear_dir:
-                try:
-                    shutil.rmtree(dir_path)
-                except shutil.Error as e:  # Potentially OSError, IOError
-                    raise Exception("Cannot remove local folder, with error: {}".format(e))
-            else:
+            if not clear_dir:
                 return dir_path
 
+            try:
+                shutil.rmtree(dir_path)
+            except shutil.Error as e:  # Potentially OSError, IOError
+                raise Exception(f"Cannot remove local folder, with error: {e}")
         # Knowing that folder does not exist, create it from scratch
         os.makedirs(dir_path)
 
@@ -64,7 +63,7 @@ class LocalIO(FileIO):
         `pandas.DataFrame`
             pandas dataframe loaded from file
         """
-        self.log("Loading dataframe from path : {}".format(infile))
+        self.log(f"Loading dataframe from path : {infile}")
 
         if infile.endswith(".gz"):
             fp = gzip.open(os.path.expanduser(infile), "rb")
@@ -88,7 +87,7 @@ class LocalIO(FileIO):
                 engine="c",
             )
         except Exception as e:
-            self.log("Error while reading : {}\n{}".format(fp, e), mode=logging.WARN)
+            self.log(f"Error while reading : {fp}\n{e}", mode=logging.WARN)
             return None
 
         # Get the bad line string value and close the string IO
@@ -98,7 +97,7 @@ class LocalIO(FileIO):
 
         # Log any bad lines
         if bad_lines:
-            self.log("Bad lines were found in the file : {}\n{}".format(infile, bad_lines))
+            self.log(f"Bad lines were found in the file : {infile}\n{bad_lines}")
 
         fp.close()
         return df
@@ -121,7 +120,7 @@ class LocalIO(FileIO):
         `pd.DataFrame`
             pandas dataframe loaded from file
         """
-        self.log("Reading {} files from [{}, ..".format(len(infiles), infiles[0]))
+        self.log(f"Reading {len(infiles)} files from [{infiles[0]}, ..")
         return pd.concat(
             [self.read_df(infile, sep=sep, index_col=index_col) for infile in infiles]
         )
@@ -146,19 +145,17 @@ class LocalIO(FileIO):
         str
             dataframe in csv form if outfile is None
         """
-        self.log("Writing dataframe to : {}".format(outfile))
+        self.log(f"Writing dataframe to : {outfile}")
         output = df.to_csv(
             sep=sep, index=index, quotechar='"', escapechar="\\", quoting=csv.QUOTE_NONNUMERIC
         )
         output = output.replace("\\", "\\\\")
 
-        if outfile:
-            fp = open(outfile, "w")
-            fp.write(output)
-            fp.close()
-            return ""
-        else:
+        if not outfile:
             return output
+        with open(outfile, "w") as fp:
+            fp.write(output)
+        return ""
 
     def read_json(self, infile) -> dict:
         """
@@ -174,7 +171,7 @@ class LocalIO(FileIO):
         dict
             python dictionary loaded from file
         """
-        self.log("Reading JSON file from : {}".format(infile))
+        self.log(f"Reading JSON file from : {infile}")
         return json.load(open(infile, "r"))
 
     def read_yaml(self, infile) -> dict:
@@ -191,7 +188,7 @@ class LocalIO(FileIO):
         dict
             python dictionary loaded from file
         """
-        self.log("Reading YAML file from : {}".format(infile))
+        self.log(f"Reading YAML file from : {infile}")
         return yaml.safe_load(open(infile, "r"))
 
     def write_json(self, json_dict: dict, outfile: str):
@@ -205,7 +202,7 @@ class LocalIO(FileIO):
         outfile : str
             path to the output file
         """
-        self.log("Writing JSON dictionary to : {}".format(outfile))
+        self.log(f"Writing JSON dictionary to : {outfile}")
         json.dump(json_dict, open(outfile, "w"), indent=4, sort_keys=True)
 
     def path_exists(self, path: str) -> bool:
@@ -223,10 +220,10 @@ class LocalIO(FileIO):
             True if path exists; False otherwise
         """
         if os.path.exists(path):
-            self.log("Path exists: {}".format(path))
+            self.log(f"Path exists: {path}")
             return True
         else:
-            self.log("Path does not exists: {}".format(path))
+            self.log(f"Path does not exists: {path}")
             return False
 
     def get_files_in_directory(self, indir: str, extension=".csv", prefix=""):
@@ -248,9 +245,10 @@ class LocalIO(FileIO):
             list of file path strings
         """
         files_in_directory = sorted(
-            glob.glob(os.path.join(indir, "{}*{}".format(prefix, extension)))
+            glob.glob(os.path.join(indir, f"{prefix}*{extension}"))
         )
-        self.log("{} files found under {}".format(len(files_in_directory), indir))
+
+        self.log(f"{len(files_in_directory)} files found under {indir}")
         return files_in_directory
 
     def clear_dir_contents(self, dir_path: str):
@@ -267,7 +265,7 @@ class LocalIO(FileIO):
                 os.remove(dir_content)
             elif os.path.isdir(dir_content):
                 shutil.rmtree(dir_content)
-        self.log("Directory cleared : {}".format(dir_path))
+        self.log(f"Directory cleared : {dir_path}")
 
     def rm_dir(self, dir_path: str):
         """
@@ -280,7 +278,7 @@ class LocalIO(FileIO):
         """
         if os.path.isdir(dir_path):
             shutil.rmtree(dir_path)
-            self.log("Directory deleted : {}".format(dir_path))
+            self.log(f"Directory deleted : {dir_path}")
 
     def rm_file(self, file_path: str):
         """
@@ -293,7 +291,7 @@ class LocalIO(FileIO):
         """
         if os.path.isfile(file_path):
             os.remove(file_path)
-            self.log("File deleted : {}".format(file_path))
+            self.log(f"File deleted : {file_path}")
 
     def save_numpy_array(self, np_array, file_path: str, allow_pickle=True, zip=True, **kwargs):
         """
@@ -359,10 +357,4 @@ class LocalIO(FileIO):
         """
         np_array = np.load(file_path, allow_pickle=allow_pickle, **kwargs)
 
-        if unzip:
-            np_array_list = list()
-            for np_file in np_array.files:
-                np_array_list.append(np_array[np_file])
-            return np_array_list
-        else:
-            return np_array
+        return [np_array[np_file] for np_file in np_array.files] if unzip else np_array

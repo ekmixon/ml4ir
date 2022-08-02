@@ -36,7 +36,7 @@ class RankingDatasetTest(RankingTestBase):
             logger=self.logger,
         )
 
-        relevance_dataset = RelevanceDataset(
+        return RelevanceDataset(
             data_dir=data_dir,
             data_format=data_format,
             feature_config=feature_config,
@@ -52,8 +52,6 @@ class RankingDatasetTest(RankingTestBase):
             file_io=self.file_io,
             logger=self.logger,
         )
-
-        return relevance_dataset
 
     def test_csv_dataset(self):
         """
