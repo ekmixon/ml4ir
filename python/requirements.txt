@@ -1,6 +1,6 @@
 # ml4ir dependencies
 tensorflow==2.0.4
-numpy==1.18.5
+numpy==1.22.2
 pandas==1.2.1
 
 # pytest
@@ -10,7 +10,7 @@ pytest-html==3.1.1
 PyYAML==5.4.1
 
 # Pyspark for spark_io
-pyspark==3.0.1
+pyspark==3.1.3
 
 #calibration
 tensorflow_probability==0.8.0
