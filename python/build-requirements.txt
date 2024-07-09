@@ -23,3 +23,4 @@ pyspark==3.0.1
 
 #calibration
 tensorflow_probability==0.8.0
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
